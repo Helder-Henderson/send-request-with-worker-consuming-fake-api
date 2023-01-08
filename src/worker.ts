@@ -1,26 +1,31 @@
 import { Worker, Job } from "bullmq";
-import IORedis from "ioredis";
+import { BASE_API as baseApi, PORT as appPort } from "./defaultEnvs";
 import axios from "axios";
+import redis from "./database/redis";
 
-const redis = new IORedis(parseInt("6379", 10), "localhost");
-redis.options.maxRetriesPerRequest = null;
+const POST_PATH = `http://127.0.0.1:${appPort}${baseApi}/data`
+let count = 0
 
 function sendJob(job: Job) {
   axios
-    .post("http://localhost:3000/api/v1/data", {
+    .post(POST_PATH, {
       logMessage: job.data.logMessage,
     })
-    .then((data) => {
-      console.log("Messagem enviada");
+    .then(() => {
+      ++count
+      if (count > 290) console.log(`Mensagens enviadas ${count}`);
+      else {
+        if (count % 50 == 1) console.log(`Mensagens enviadas ${count}`)
+      }
     })
-    .catch((e) => {
+    .catch((error) => {
       setInterval(() => {
-        console.log("Job Deu erro", job.id);
+        console.error(`Job ${job.id}`, error);
       }, 5000);
     });
 }
 
-const worker = new Worker(
+new Worker(
   "Log",
   async (job: Job) => {
     sendJob(job);

@@ -1,12 +1,9 @@
 import mongoose from "mongoose";
+import { CONNECTION_STRING_MONGO as connectionString, MILLISECONDS_TO_WAIT_AFTER_RETRY } from "../defaultEnvs";
 
-const connectionString: string = process.env.MONGO_URI
-  ? process.env.MONGO_URI
-  : "";
+if (connectionString == null) throw new Error("Enviroment MONGO_URI not defined")
 
 let isConnect = false;
-
-const millisecondsToWait = 10000;
 
 (function connectDatabase() {
   mongoose
@@ -17,10 +14,10 @@ const millisecondsToWait = 10000;
     })
     .catch((error) => {
       console.log(`[Error]: ${error}`);
-      console.log(`[Info]: Retry in ${millisecondsToWait} MS`);
+      console.log(`[Info]: Retry in ${MILLISECONDS_TO_WAIT_AFTER_RETRY} MS`);
       setTimeout(() => {
         connectDatabase();
-      }, millisecondsToWait);
+      }, MILLISECONDS_TO_WAIT_AFTER_RETRY);
     });
 })();
 

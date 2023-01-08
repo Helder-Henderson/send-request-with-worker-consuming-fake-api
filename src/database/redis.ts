@@ -1,13 +1,25 @@
-import IORedis, { Redis } from "ioredis";
+import Redis, { Redis as IRedis } from "ioredis";
+import { PORT_REDIS as port, HOST_REDIS as host, MILLISECONDS_TO_WAIT_AFTER_RETRY } from "../defaultEnvs";
 
-let redis: Redis;
+let redis!: IRedis;
+let isConnect = false;
 
-if (process.env.DB_PORT && process.env.DB_HOST) {
-  redis = new IORedis(parseInt(process.env.DB_PORT, 10), process.env.DB_HOST);
-
-  redis.options.maxRetriesPerRequest = null;
-} else {
-  throw new Error("environment DB_HOST OR DB_PORT unavailable");
-}
+(function connectDatabase() {
+  try {
+    redis = new Redis({
+      port,
+      host,
+      maxRetriesPerRequest: null,
+    });
+    isConnect = true
+  }
+  catch (error) {
+    console.log(`[Error]: ${error}`);
+    console.log(`[Info]: Retry in ${MILLISECONDS_TO_WAIT_AFTER_RETRY} MS`);
+    setTimeout(() => {
+      connectDatabase();
+    }, MILLISECONDS_TO_WAIT_AFTER_RETRY);
+  }
+})();
 
 export default redis;

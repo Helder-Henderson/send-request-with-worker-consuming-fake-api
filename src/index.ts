@@ -1,20 +1,18 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import router from "./router/router";
+import { PORT as port, BASE_API as baseApi } from "./defaultEnvs";
+
+import router from "./router";
 import express, { Express } from "express";
 
-if (process.env.PORT) {
-  const PORT = parseInt(process.env.PORT, 10) || 3000;
+const app: Express = express();
 
-  const app: Express = express();
+app.use(express.json());
+app.use(baseApi, router);
 
-  app.use(express.json());
-  app.use("/api/v1", router);
-
-  app.listen(PORT, () => {
-    console.log(`Server is running at port http://127.0.0.1:${PORT}`);
-  });
-} else {
-  throw new Error("Environment PORT is unavailable");
-}
+app.listen(port, () => {
+  console.info(`[INFO]: Server is running at port http://127.0.0.1:${port}`);
+  console.info(`[INFO]: Server is running at port http://127.0.0.1:${port}${baseApi}`);
+  console.info(`[INFO]: Base API ${baseApi}`);
+});
